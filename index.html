@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="theme-color" content="#4FC3F7">
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Догляд">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <!-- НОВИЙ РЯДОК: iPhone 15 Pro -->
+    <link href="splashscreens/iphone15pro_splash.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image" />
+
+    <!-- iPhone 14 & 13 Pro, 12 Pro -->
+    <link href="splashscreens/iphone14_13pro_12pro_splash.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image" />
+    
+    <title>Догляд за шкірою</title>
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="app-container">
+        <!-- ЄДИНИЙ КОМПОНЕНТ ХЕДЕРА -->
+        <header id="app-header" class="app-header">
+            <div class="header-left">
+                <button id="header-back-btn" class="header-btn back-btn hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <div id="header-greeting" class="header-greeting"></div>
+            </div>
+            <div id="header-title" class="header-title"></div>
+            <div class="header-right">
+                <div id="header-avatar-left" class="header-avatar"></div>
+                <div id="header-avatar-right" class="header-avatar"></div>
+            </div>
+        </header>
+
+        <main id="app-content">
+            <!-- ОСНОВНІ СТОРІНКИ -->
+            <div id="home-view" class="page active" data-title="Головна" data-type="main">
+                <!-- Контент головної сторінки (без хедера) -->
+                <div class="info-cards-container">
+                    <div id="weather-card" class="info-card">
+                        <span id="weather-location" class="card-location">Завантаження...</span>
+                        <div class="card-main-content">
+                            <span id="weather-temp" class="card-value">--°C</span>
+                            <span id="uv-index" class="card-value">UV --</span>
+                        </div>
+                    </div>
+                    <div id="care-card" class="info-card">
+                        <span class="card-title">Сьогоднішній догляд</span>
+                        <div class="card-main-content">
+                            <span id="care-status-icon" class="card-icon">⚪️</span>
+                            <span id="care-status-text" class="card-value">Не внесено</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="skin-survey-card" class="survey-card">
+                    <div class="survey-card-image"></div>
+                    <div class="survey-card-content"><h2>Як твоя шкіра сьогодні?</h2><div class="mood-buttons"><button class="mood-btn" data-mood="5">😀<br><span>Чудово</span></button><button class="mood-btn" data-mood="4">🙂<br><span>Добре</span></button><button class="mood-btn" data-mood="3">😐<br><span>Нормально</span></button><button class="mood-btn" data-mood="2">😕<br><span>Не дуже</span></button><button class="mood-btn" data-mood="1">😣<br><span>Погано</span></button></div></div>
+                </div>
+                <div id="skin-survey-result-card" class="survey-result-card hidden">
+                    <h3>Твоя оцінка на сьогодні:</h3>
+                    <p id="survey-result-emoji"></p>
+                </div>
+            </div>
+            
+            <div id="products-view" class="page" data-title="Продукти" data-type="secondary"><button id="add-product-btn" class="btn-primary">Додати новий продукт</button><div id="products-list" class="item-list"></div></div>
+            <div id="calendar-view" class="page" data-title="Календар" data-type="secondary"><div class="calendar-nav"><button id="prev-month-btn">&lt;</button><h2 id="calendar-header"></h2><button id="next-month-btn">&gt;</button></div><div id="calendar-container"><div class="calendar-weekdays"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Нд</div></div><div id="calendar-grid" class="calendar-grid"></div></div><div id="day-details-section"><h2 id="day-details-header">Виберіть день</h2><div id="day-details-content"></div><div id="day-actions-container" style="display: none;"><button id="add-procedure-btn" class="btn-primary">Додати процедуру</button><button id="apply-set-btn" class="btn-gradient">Застосувати сет</button></div></div></div>
+            <div id="settings-view" class="page" data-title="Налаштування" data-type="secondary">
+                <div class="settings-menu">
+                    <div class="settings-card" data-target="categories-page"><h3>Категорії</h3><p>Керування категоріями часу</p></div>
+                    <div class="settings-card" data-target="sets-page"><h3>Сети процедур</h3><p>Керування шаблонами догляду</p></div>
+                    <div class="settings-card" data-target="history-page"><h3>Історія</h3><p>Перегляд всіх записів</p></div>
+                    <div class="settings-card" data-target="profile-page"><h3>Особисті дані</h3><p>Ваше ім'я та фото</p></div>
+                </div>
+            </div>
+
+            <!-- ПІД-СТОРІНКИ -->
+            <div id="categories-page" class="page sub-page" data-title="Категорії" data-type="tertiary"><form id="add-category-form" class="add-form"><input type="text" id="category-name-input" placeholder="Назва нової категорії" required><button type="submit" class="btn-primary">Додати</button></form><div id="categories-list" class="item-list"></div></div>
+            <div id="sets-page" class="page sub-page" data-title="Сети процедур" data-type="tertiary"><button id="add-set-btn" class="btn-primary">Створити новий сет</button><div id="sets-list" class="item-list" style="margin-top:20px;"></div></div>
+            <div id="history-page" class="page sub-page" data-title="Історія" data-type="tertiary"><div id="history-list" class="history-list-container"></div><button id="open-filter-btn" class="fab"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button></div>
+            <div id="profile-page" class="page sub-page" data-title="Особисті дані" data-type="tertiary"><form id="profile-form"><div class="form-group"><label for="profile-name">Ваше ім'я</label><input type="text" id="profile-name" placeholder="Введіть ім'я"></div><div class="form-group"><label for="profile-photo">Ваше фото</label><input type="file" id="profile-photo" accept="image/*"><img id="profile-photo-preview" src="" alt="Попередній перегляд фото" class="hidden"></div><div class="form-actions"><button type="submit" class="btn-primary">Зберегти</button></div></form></div>
+        </main>
+        
+        <nav id="bottom-nav">
+            <button data-target="home-view" class="nav-btn active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Головна</span></button>
+            <button data-target="products-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4z"></path><path d="M16 13V7c0-2.8-2.2-5-5-5S6 4.2 6 7v6"></path></svg><span>Продукти</span></button>
+            <div class="nav-fab-placeholder"></div>
+            <button data-target="calendar-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span>Календар</span></button>
+            <button data-target="settings-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span>Налаштування</span></button>
+        </nav>
+        <button id="central-fab-btn" class="central-fab"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+    </div>
+
+    <!-- Універсальний оверлей для затемнення -->
+    <div id="modal-overlay"></div>
+    
+    <!-- Модальні вікна -->
+    <div id="product-modal" class="modal"><div class="modal-content"><header class="modal-header"><h2 id="product-modal-title"></h2><button id="close-modal-btn" class="close-btn">&times;</button></header><form id="product-form"><input type="hidden" id="product-id"><div class="form-group"><label for="product-name">Назва</label><input type="text" id="product-name" required></div><div class="form-group"><label for="product-description">Опис</label><textarea id="product-description" rows="3"></textarea></div><div class="form-group"><label for="product-image">Зображення</label><input type="file" id="product-image" accept="image/*"></div><div class="form-group"><label for="product-notes">Замітка</label><input type="text" id="product-notes"></div><div class="form-group"><label for="product-color">Колірна мітка</label><input type="color" id="product-color" value="#4FC3F7"></div><div class="form-actions"><button type="submit" class="btn-primary">Зберегти</button></div></form></div></div>
+    <div id="procedure-modal" class="modal"><div class="modal-content"><header class="modal-header"><h2>Нова процедура</h2><button id="close-procedure-modal-btn" class="close-btn">&times;</button></header><form id="procedure-form"><input type="hidden" id="procedure-date"><div class="form-group"><label for="procedure-category">Категорія</label><select id="procedure-category" required></select></div><div class="form-group"><label for="procedure-product">Продукт</label><select id="procedure-product" required></select></div><div class="form-group"><label for="procedure-time">Час</label><input type="time" id="procedure-time" required></div><div class="form-group"><label for="procedure-notes">Замітка</label><input type="text" id="procedure-notes"></div><div class="form-actions"><button type="submit" class="btn-primary">Зберегти</button></div></form></div></div>
+    <div id="filter-modal-overlay" class="filter-modal-overlay"><div class="filter-modal-content"><div class="filter-modal-header"><h3>Фільтри</h3><button id="close-filter-btn" class="close-filter-btn">&times;</button></div><div class="filter-modal-body"><div class="filter-group"><h4>Діапазон дат</h4><div class="date-filter-group"><div class="form-group"><label for="filter-date-from">Від</label><input type="date" id="filter-date-from"></div><div class="form-group"><label for="filter-date-to">До</label><input type="date" id="filter-date-to"></div></div></div><div class="filter-group"><h4>Категорії</h4><div id="filter-categories-list" class="filter-list"></div></div><div class="filter-group"><h4>Кольорові мітки</h4><div id="filter-colors-list" class="filter-list"></div></div></div><div class="filter-modal-footer"><button id="reset-filters-btn" class="btn-reset">Скинути фільтри</button><button id="apply-filters-btn" class="btn-gradient">Застосувати</button></div></div></div>
+    <div id="set-modal" class="modal"><div class="modal-content"><header class="modal-header"><h2 id="set-modal-title">Новий сет</h2><button id="close-set-modal-btn" class="close-btn">&times;</button></header><form id="set-form"><input type="hidden" id="set-id"><div class="form-group"><label for="set-name">Назва сету</label><input type="text" id="set-name" required></div><div class="form-group"><label for="set-category">Категорія</label><select id="set-category" required></select></div><div class="form-group"><label>Продукти в сеті</label><div id="set-products-list" class="product-selection-list"></div></div><div class="form-actions"><button type="submit" class="btn-primary">Зберегти сет</button></div></form></div></div>
+    <div id="select-set-modal" class="modal"><div class="modal-content"><header class="modal-header"><h2>Застосувати сет</h2><button id="close-select-set-modal-btn" class="close-btn">&times;</button></header><form id="select-set-form"><div class="form-group"><label for="set-select-list">Виберіть сет</label><select id="set-select-list" required></select></div><div class="form-group"><label for="set-time">Час для процедур</label><input type="time" id="set-time" required></div><div class="form-actions"><button type="submit" class="btn-primary">Додати</button></div></form></div></div>
+    
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
