@@ -26,7 +26,7 @@ body {
 #app-container { 
     display: flex; 
     flex-direction: column; 
-    height: 100vh; 
+    height: 100%; 
     max-width: 450px; 
     margin: 0 auto; 
     background-color: var(--bg-color); 
@@ -142,7 +142,10 @@ body {
 
 .page .page-header { display: none; }
 
-#bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 70px; background-color: #FFFFFF; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #E0E0E0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 900; }
+#bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 70px; background-color: #FFFFFF; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #E0E0E0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 900; padding-left: env(safe-area-inset-left); /* Додаємо відступ зліва */
+    padding-right: env(safe-area-inset-right); /* Додаємо відступ справа */
+    padding-bottom: env(safe-area-inset-bottom); /* Додаємо відступ знизу */
+}
 .nav-btn { background: none; border: none; font-family: var(--font-main); color: #757575; font-size: 12px; font-weight: 500; cursor: pointer; transition: color 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; flex-basis: 20%; }
 .nav-btn.active { color: var(--primary-accent); }
 .settings-menu { display: flex; flex-direction: column; gap: 12px; }
