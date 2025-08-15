@@ -551,45 +551,54 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// === ЛОГИКА PWA ВЫНЕСЕНА В ОТДЕЛЬНЫЙ БЛОК ===
+// === НОВА, НАДІЙНА ЛОГІКА ОНОВЛЕННЯ PWA (вставляємо в кінець main.js) ===
 const pwaManager = {
+    newWorker: null, // Зберігаємо посилання на новий SW
+
     init: () => {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/service-worker.js')
                 .then(registration => {
                     console.log('Service Worker зареєстровано.');
-                    // Перевіряємо наявність оновлень при завантаженні
+                    
+                    // Не робимо нічого, якщо оновлень немає
+                    if (registration.waiting) {
+                        pwaManager.newWorker = registration.waiting;
+                        pwaManager.showUpdateBanner();
+                        return;
+                    }
+                    
+                    // Відстежуємо появу нового SW
                     registration.onupdatefound = () => {
                         const installingWorker = registration.installing;
                         installingWorker.onstatechange = () => {
                             if (installingWorker.state === 'installed') {
                                 if (navigator.serviceWorker.controller) {
-                                    // Оновлення доступне, показуємо банер
-                                    console.log('Знайдено новий SW в очікуванні. Показуємо банер.');
-                                    pwaManager.showUpdateBanner(installingWorker);
+                                    pwaManager.newWorker = installingWorker;
+                                    pwaManager.showUpdateBanner();
                                 }
                             }
                         };
                     };
                 }).catch(error => console.error('Помилка реєстрації SW:', error));
-            
-            let refreshing;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (refreshing) return;
-                window.location.reload();
-                refreshing = true;
-            });
         }
     },
 
-    showUpdateBanner: (worker) => {
+    showUpdateBanner: () => {
         const banner = document.getElementById('update-banner');
         const reloadButton = document.getElementById('reload-button');
         if (!banner || !reloadButton) return;
         
         reloadButton.onclick = () => {
-            worker.postMessage({ action: 'SKIP_WAITING' });
-            console.log('Worked');
+            // Відправляємо повідомлення і ВІДРАЗУ Ж ПЕРЕЗАВАНТАЖУЄМО
+            if (pwaManager.newWorker) {
+                pwaManager.newWorker.postMessage({ action: 'SKIP_WAITING' });
+                // Не чекаємо на controllerchange, а просто перезавантажуємо після короткої паузи
+                // Це дає час SW активуватися
+                setTimeout(() => {
+                    window.location.reload();
+                }, 100);
+            }
         };
 
         banner.classList.add('visible');
