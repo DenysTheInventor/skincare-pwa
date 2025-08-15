@@ -316,7 +316,7 @@ body {
 /* --- Стилі для банера оновлення --- */
 .update-banner {
     position: absolute;
-    bottom: 90px; /* Трохи вище нижньої панелі */
+    bottom: 120px; /* Трохи вище нижньої панелі */
     left: 50%;
     transform: translate(-50%, 150%); /* Сховано під екраном */
     width: calc(100% - 40px);

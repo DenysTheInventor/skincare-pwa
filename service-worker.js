@@ -1,4 +1,4 @@
-const CACHE_NAME = 'skincare-app-cache-v4'; // Не забувайте змінювати версію при змінах
+const CACHE_NAME = 'skincare-app-cache-v5'; // Не забувайте змінювати версію при змінах
 const urlsToCache = [
   '/', '/index.html', '/style.css',
   '/js/main.js', '/js/db.js',
@@ -36,4 +36,10 @@ self.addEventListener('fetch', event => {
     caches.match(event.request)
       .then(response => response || fetch(event.request))
   );
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
