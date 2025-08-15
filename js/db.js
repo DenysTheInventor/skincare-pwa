@@ -1,7 +1,7 @@
 let db;
 
 const DB_NAME = 'SkincareAppDB';
-const DB_VERSION = 5;
+const DB_VERSION = 7;
 
 export function initDB() {
     return new Promise((resolve, reject) => {

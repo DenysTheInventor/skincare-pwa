@@ -1,4 +1,4 @@
-const CACHE_NAME = 'skincare-app-cache-v5'; // Не забувайте змінювати версію при змінах
+const CACHE_NAME = 'skincare-app-cache-v7'; // Не забувайте змінювати версію при змінах
 const urlsToCache = [
   '/', '/index.html', '/style.css',
   '/js/main.js', '/js/db.js',
