@@ -2,8 +2,7 @@ const CACHE_NAME = 'skincare-app-cache-v4'; // Не забувайте змін�
 const urlsToCache = [
   '/', '/index.html', '/style.css',
   '/js/main.js', '/js/db.js',
-  '/icons/icon-192.png', '/icons/icon-512.png',
-  '/screenshots/screenshot1.png'
+  '/icons/icon-192.png', '/icons/icon-512.png'
 ];
 
 // 1. Встановлення
