@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         product: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4z"></path><path d="M16 13V7c0-2.8-2.2-5-5-5S6 4.2 6 7v6"></path></svg>`,
         check: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
     };
+
+    let skinStateChart = null;
     
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => document.querySelectorAll(selector);
@@ -203,7 +205,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (editSetBtn) { const set = await getSetById(Number(editSetBtn.dataset.id)); if (set) { openSetModal(set); showModal($('#set-modal')); } }
     }
 
-    async function renderAll() { await Promise.all([renderHomePage(), renderCategories(), renderProducts(), renderCalendar(), renderHistory(), renderSets()]); }
+    async function renderAll() { await Promise.all([renderHomePage(), renderCategories(), renderProducts(), renderCalendar(), renderHistory(), renderSets(), renderAnalyticsChart()]); }
 
     async function renderHomePage() {
         const now = new Date();
@@ -220,6 +222,99 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (surveyResult) { showSurveyResult(surveyResult.mood); } 
         else { $('#skin-survey-card').classList.remove('hidden'); $('#skin-survey-result-card').classList.add('hidden'); }
     }
+
+    async function renderAnalyticsChart() {
+    const surveys = await getAllSurveys();
+    const ctx = document.getElementById('skin-state-chart');
+
+    // Перевіряємо, чи є canvas на сторінці
+    if (!ctx) return;
+
+    // 1. Готуємо дані за останні 7 днів
+    const labels = [];
+    const dataPoints = [];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        
+        const dateString = date.toISOString().split('T')[0];
+        const dayLabel = date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
+        labels.push(dayLabel);
+        
+        const surveyForDay = surveys.find(s => s.date === dateString);
+        dataPoints.push(surveyForDay ? surveyForDay.mood : null);
+    }
+    
+    // 2. Налаштовуємо графік
+    if (skinStateChart) {
+        skinStateChart.destroy();
+    }
+
+    skinStateChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Стан шкіри',
+                data: dataPoints,
+                borderColor: 'rgba(79, 195, 247, 1)',
+                backgroundColor: 'rgba(79, 195, 247, 0.1)',
+                borderWidth: 3,
+                pointBackgroundColor: 'rgba(79, 195, 247, 1)',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                fill: true,
+                tension: 0.4,
+                spanGaps: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    min: 0, // Явно вказуємо мінімум
+                    max: 6, // Встановлюємо максимум на 6
+                    ticks: {
+                        stepSize: 1,
+                        padding: 10,
+                        callback: function(value) {
+                            const emojiMap = { 5:'😀', 4:'🙂', 3:'😐', 2:'😕', 1:'😣' };
+                            return emojiMap[value] || '';
+                        }
+                    },
+                    grid: {
+                        drawOnChartArea: true,
+                        color: function(context) {
+                            if (context.tick.value === 6) {
+                                return 'transparent'; // Робимо верхню лінію сітки прозорою
+                            }
+                            return '#e0e0e0'; // Колір інших ліній
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.parsed.y;
+                            if (value === null) return 'Немає даних';
+                            const textMap = { 5:'Чудово', 4:'Добре', 3:'Нормально', 2:'Не дуже', 1:'Погано' };
+                            return `Оцінка: ${textMap[value]}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
 
     async function renderCategories() {
         const list = $('#categories-list');
@@ -467,6 +562,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const moodValue = moodButton.dataset.mood; 
         await addSkinSurvey({ date: new Date().toISOString().split('T')[0], mood: Number(moodValue) }); 
         showSurveyResult(moodValue); 
+        await renderAnalyticsChart();
     }
 
     function showSurveyResult(mood) { 

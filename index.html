@@ -68,6 +68,12 @@
                     <h3>Твоя оцінка на сьогодні:</h3>
                     <p id="survey-result-emoji"></p>
                 </div>
+                <div id="analytics-section" class="analytics-section">
+                    <h2>Аналітика стану шкіри (ост. 7 днів)</h2>
+                    <div class="chart-container">
+                        <canvas id="skin-state-chart"></canvas>
+                    </div>
+                </div>
             </div>
             
             <div id="products-view" class="page" data-title="Продукти" data-type="secondary"><button id="add-product-btn" class="btn-primary">Додати новий продукт</button><div id="products-list" class="item-list"></div></div>
@@ -144,6 +150,7 @@
     </div> -->
     <div id="select-set-modal" class="modal"><div class="modal-content"><header class="modal-header"><h2>Застосувати сет</h2><button id="close-select-set-modal-btn" class="close-btn">&times;</button></header><form id="select-set-form"><div class="form-group"><label for="set-select-list">Виберіть сет</label><select id="set-select-list" required></select></div><div class="form-group"><label for="set-time">Час для процедур</label><input type="time" id="set-time" required></div><div class="form-actions"><button type="submit" class="btn-primary">Додати</button></div></form></div></div>
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
