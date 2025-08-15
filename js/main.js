@@ -550,3 +550,51 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+
+// === ЛОГІКА ОНОВЛЕННЯ PWA (поза DOMContentLoaded) ===
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+            try {
+                const registration = await navigator.serviceWorker.register('/service-worker.js');
+                console.log('Service Worker зареєстровано:', registration);
+
+                // Відстежуємо появу нового SW в очікуванні
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // Новий SW встановлено і готовий, показуємо банер
+                            showUpdateBanner(newWorker);
+                        }
+                    });
+                });
+            } catch (error) {
+                console.log('Помилка реєстрації Service Worker:', error);
+            }
+        });
+
+        // Відстежуємо, коли SW змінився, і перезавантажуємо сторінку
+        let refreshing;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            window.location.reload();
+            refreshing = true;
+        });
+    }
+}
+
+function showUpdateBanner(worker) {
+    const banner = document.getElementById('update-banner');
+    const reloadButton = document.getElementById('reload-button');
+    
+    reloadButton.addEventListener('click', () => {
+        // Відправляємо повідомлення новому SW, щоб він активувався
+        worker.postMessage({ action: 'skipWaiting' });
+    });
+
+    banner.classList.add('visible');
+}
+
+// Запускаємо реєстрацію
+registerServiceWorker();

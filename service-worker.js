@@ -1,30 +1,21 @@
-// Назва кешу та файли, які потрібно закешувати "наперед"
-const CACHE_NAME = 'skincare-app-cache-v2';
+const CACHE_NAME = 'skincare-app-cache-v4'; // Не забувайте змінювати версію при змінах
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/js/main.js',
-  '/js/db.js',
-  '/icons/icon-192.png', // Додано
-  '/icons/icon-512.png'  // Додано
-  // Шляхи до іконок ми додамо пізніше, коли вони будуть готові
+  '/', '/index.html', '/style.css',
+  '/js/main.js', '/js/db.js',
+  '/icons/icon-192.png', '/icons/icon-512.png',
+  '/screenshots/screenshot1.png'
 ];
 
-// 1. Встановлення Service Worker'а
+// 1. Встановлення
 self.addEventListener('install', event => {
-  // Відкладаємо завершення встановлення, доки кеш не буде заповнений
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Кеш відкрито');
-        return cache.addAll(urlsToCache);
-      })
+      .then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting()) // <-- ВАЖЛИВА ЗМІНА
   );
 });
 
-// 2. Активація Service Worker'а
-// Цей етап потрібен для очищення старого кешу, якщо він є
+// 2. Активація
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -36,22 +27,14 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // <-- ВАЖЛИВА ЗМІНА
   );
 });
 
-// 3. Перехоплення запитів (Fetch)
+// 3. Перехоплення запитів (без змін)
 self.addEventListener('fetch', event => {
   event.respondWith(
-    // Спочатку шукаємо ресурс у кеші
     caches.match(event.request)
-      .then(response => {
-        // Якщо ресурс знайдено в кеші, повертаємо його
-        if (response) {
-          return response;
-        }
-        // Якщо ні, робимо реальний запит до мережі
-        return fetch(event.request);
-      })
+      .then(response => response || fetch(event.request))
   );
 });
