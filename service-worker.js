@@ -1,20 +1,22 @@
-const CACHE_NAME = 'skincare-app-cache-v7'; // Не забувайте змінювати версію при змінах
+const CACHE_NAME = 'skincare-app-cache-v10'; // Убедитесь, что версия новая
 const urlsToCache = [
-  '/', '/index.html', '/style.css',
-  '/js/main.js', '/js/db.js',
-  '/icons/icon-192.png', '/icons/icon-512.png'
+  '/',
+  '/index.html',
+  '/style.css',
+  '/js/main.js',
+  '/js/db.js',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
-// 1. Встановлення
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting()) // <-- ВАЖЛИВА ЗМІНА
+      .catch(err => console.error("Ошибка кеширования:", err))
   );
 });
 
-// 2. Активація
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -26,11 +28,10 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    }).then(() => self.clients.claim()) // <-- ВАЖЛИВА ЗМІНА
+    }).then(() => self.clients.claim())
   );
 });
 
-// 3. Перехоплення запитів (без змін)
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
@@ -39,7 +40,8 @@ self.addEventListener('fetch', event => {
 });
 
 self.addEventListener('message', event => {
-  if (event.data && event.data.action === 'skipWaiting') {
+  console.log('Service Worker отримав повідомлення:', event.data); 
+  if (event.data && event.data.action === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });

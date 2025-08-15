@@ -551,50 +551,49 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// === ЛОГІКА ОНОВЛЕННЯ PWA (поза DOMContentLoaded) ===
-function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', async () => {
-            try {
-                const registration = await navigator.serviceWorker.register('/service-worker.js');
-                console.log('Service Worker зареєстровано:', registration);
+// === ЛОГИКА PWA ВЫНЕСЕНА В ОТДЕЛЬНЫЙ БЛОК ===
+const pwaManager = {
+    init: () => {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker зареєстровано.');
+                    // Перевіряємо наявність оновлень при завантаженні
+                    registration.onupdatefound = () => {
+                        const installingWorker = registration.installing;
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed') {
+                                if (navigator.serviceWorker.controller) {
+                                    // Оновлення доступне, показуємо банер
+                                    console.log('Знайдено новий SW в очікуванні. Показуємо банер.');
+                                    pwaManager.showUpdateBanner(installingWorker);
+                                }
+                            }
+                        };
+                    };
+                }).catch(error => console.error('Помилка реєстрації SW:', error));
+            
+            let refreshing;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                window.location.reload();
+                refreshing = true;
+            });
+        }
+    },
 
-                // Відстежуємо появу нового SW в очікуванні
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            // Новий SW встановлено і готовий, показуємо банер
-                            showUpdateBanner(newWorker);
-                        }
-                    });
-                });
-            } catch (error) {
-                console.log('Помилка реєстрації Service Worker:', error);
-            }
-        });
+    showUpdateBanner: (worker) => {
+        const banner = document.getElementById('update-banner');
+        const reloadButton = document.getElementById('reload-button');
+        if (!banner || !reloadButton) return;
+        
+        reloadButton.onclick = () => {
+            worker.postMessage({ action: 'SKIP_WAITING' });
+            console.log('Worked');
+        };
 
-        // Відстежуємо, коли SW змінився, і перезавантажуємо сторінку
-        let refreshing;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (refreshing) return;
-            window.location.reload();
-            refreshing = true;
-        });
+        banner.classList.add('visible');
     }
-}
+};
 
-function showUpdateBanner(worker) {
-    const banner = document.getElementById('update-banner');
-    const reloadButton = document.getElementById('reload-button');
-    
-    reloadButton.addEventListener('click', () => {
-        // Відправляємо повідомлення новому SW, щоб він активувався
-        worker.postMessage({ action: 'skipWaiting' });
-    });
-
-    banner.classList.add('visible');
-}
-
-// Запускаємо реєстрацію
-registerServiceWorker();
+pwaManager.init();
