@@ -78,6 +78,7 @@
                     <div class="settings-card" data-target="sets-page"><h3>Сети процедур</h3><p>Керування шаблонами догляду</p></div>
                     <div class="settings-card" data-target="history-page"><h3>Історія</h3><p>Перегляд всіх записів</p></div>
                     <div class="settings-card" data-target="profile-page"><h3>Особисті дані</h3><p>Ваше ім'я та фото</p></div>
+                    <div class="settings-card" data-target="system-page"><h3>Система</h3><p>Резервне копіювання та відновлення</p></div>
                 </div>
             </div>
 
@@ -86,6 +87,27 @@
             <div id="sets-page" class="page sub-page" data-title="Сети процедур" data-type="tertiary"><button id="add-set-btn" class="btn-primary">Створити новий сет</button><div id="sets-list" class="item-list" style="margin-top:20px;"></div></div>
             <div id="history-page" class="page sub-page" data-title="Історія" data-type="tertiary"><div id="history-list" class="history-list-container"></div><button id="open-filter-btn" class="fab"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button></div>
             <div id="profile-page" class="page sub-page" data-title="Особисті дані" data-type="tertiary"><form id="profile-form"><div class="form-group"><label for="profile-name">Ваше ім'я</label><input type="text" id="profile-name" placeholder="Введіть ім'я"></div><div class="form-group"><label for="profile-photo">Ваше фото</label><input type="file" id="profile-photo" accept="image/*"><img id="profile-photo-preview" src="" alt="Попередній перегляд фото" class="hidden"></div><div class="form-actions"><button type="submit" class="btn-primary">Зберегти</button></div></form></div>
+            <!-- НОВА ПІД-СТОРІНКА -->
+            <div id="system-page" class="page sub-page" data-title="Система" data-type="tertiary">
+                <div class="settings-section">
+                    <h2>Резервне копіювання</h2>
+                    <p class="section-description">Збережіть всі ваші дані (продукти, історію, налаштування) в один файл. Зберігайте його в надійному місці.</p>
+                    <button id="export-data-btn" class="btn-secondary">Експортувати дані (.json)</button>
+                </div>
+
+                <div class="settings-section">
+                    <h2>Відновлення з файлу</h2>
+                    <p class="section-description">
+                        <strong>Увага!</strong> Імпорт даних повністю замінить всю поточну інформацію в додатку на дані з файлу. Ця дія незворотня.
+                    </p>
+                    <div class="form-group">
+                        <label for="import-file-input" class="btn-secondary file-upload-btn">Вибрати файл для імпорту</label>
+                        <input type="file" id="import-file-input" accept=".json">
+                        <span id="import-file-name">Файл не вибрано</span>
+                    </div>
+                <button id="import-data-btn" class="btn-primary" disabled>Імпортувати дані</button>
+                </div>
+            </div>
         </main>
         
         <nav id="bottom-nav">

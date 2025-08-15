@@ -73,7 +73,42 @@ export function getSetById(id) { return performTransaction('procedureSets', 'rea
 // Опитування про шкіру
 export function addSkinSurvey(data) { return performTransaction('skinSurveys', 'readwrite', store => store.add(data)); }
 export function getSkinSurveyByDate(date) { return performTransaction('skinSurveys', 'readonly', store => store.get(date)); }
+export function getAllSurveys() {
+    return performTransaction('skinSurveys', 'readonly', store => store.getAll());
+}
 
 // Профіль користувача
 export function updateProfile(profile) { profile.id = 1; return performTransaction('userProfile', 'readwrite', store => store.put(profile)); }
 export function getProfile() { return performTransaction('userProfile', 'readonly', store => store.get(1)); }
+
+/**
+ * Повністю очищує всі сховища і заповнює їх новими даними.
+ * @param {object} data - Об'єкт з даними для імпорту, що відповідає структурі експорту.
+ */
+export function importData(data) {
+    return new Promise((resolve, reject) => {
+        if (!db) return reject("База даних не ініціалізована.");
+
+        const storeNames = Array.from(db.objectStoreNames);
+        const transaction = db.transaction(storeNames, 'readwrite');
+        transaction.onerror = (event) => reject(event.target.error);
+        transaction.oncomplete = (event) => resolve();
+
+        // 1. Очищуємо всі існуючі сховища
+        storeNames.forEach(storeName => {
+            transaction.objectStore(storeName).clear();
+        });
+
+        // 2. Заповнюємо сховища новими даними
+        storeNames.forEach(storeName => {
+            const store = transaction.objectStore(storeName);
+            // Використовуємо правильний ключ для кожного сховища
+            const key = storeName === 'procedureSets' ? 'procedureSets' : storeName;
+            if (data[key]) {
+                data[key].forEach(item => {
+                    store.put(item); // .put() безпечніший, ніж .add() для відновлення
+                });
+            }
+        });
+    });
+}

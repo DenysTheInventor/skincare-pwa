@@ -3,8 +3,8 @@ import {
     getAllProducts, addProduct, deleteProduct, updateProduct, getProductById,
     getCalendarEntriesForMonth, addCalendarEntry, deleteCalendarEntry, getAllCalendarEntries,
     addSet, getAllSets, deleteSet, getSetById, updateSet,
-    addSkinSurvey, getSkinSurveyByDate,
-    updateProfile, getProfile
+    addSkinSurvey, getSkinSurveyByDate, getAllSurveys,
+    updateProfile, getProfile, importData
 } from './db.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -49,6 +49,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) { console.error('Не вдалося ініціалізувати додаток:', error); }
 
     function initEventListeners() {
+        // --- НОВІ СЛУХАЧІ для Імпорту/Експорту ---
+        const importFileInput = $('#import-file-input');
+        const importDataBtn = $('#import-data-btn');
+        const exportDataBtn = $('#export-data-btn');
+
+        if (exportDataBtn) exportDataBtn.addEventListener('click', handleExportData);
+        if (importFileInput) importFileInput.addEventListener('change', () => {
+                const file = importFileInput.files[0];
+                if (file) {
+                    $('#import-file-name').textContent = file.name;
+                    importDataBtn.disabled = false;
+                } else {
+                    $('#import-file-name').textContent = 'Файл не вибрано';
+                    importDataBtn.disabled = true;
+                }
+            });
+        if (importDataBtn) importDataBtn.addEventListener('click', handleImportData);
+
         $$('#bottom-nav .nav-btn').forEach(button => button.addEventListener('click', () => {
             const targetPage = $(`#${button.dataset.target}`);
             navigateToPage(targetPage);
@@ -264,6 +282,60 @@ document.addEventListener('DOMContentLoaded', async () => {
                 content.innerHTML += `<div class="procedure-entry"><div class="procedure-info"><span class="time">${entry.time}</span><span class="product-name">${product?.name || '?'}</span><span class="category-name" style="opacity:0.7">${entry.notes||''}</span></div><div class="card-actions"><button class="delete-btn delete-entry-btn" data-id="${entry.id}">${ICONS.trash}</button></div></div>`;
             });
         });
+    }
+
+    async function handleExportData() {
+        try {
+            const [categories, products, calendar, sets, profile, surveys] = await Promise.all([
+                getAllCategories(), getAllProducts(), getAllCalendarEntries(),
+                getAllSets(), getProfile(), getAllSurveys()
+            ]);
+
+            const allData = { categories, products, calendar, procedureSets: sets, userProfile: profile, skinSurveys: surveys };
+            
+            const jsonString = JSON.stringify(allData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `skincare_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Ошибка при экспорте данных:', error);
+            alert('Не вдалося експортувати дані.');
+        }
+    }
+
+    async function handleImportData() {
+        const file = $('#import-file-input').files[0];
+        if (!file) {
+            alert('Будь ласка, виберіть файл.');
+            return;
+        }
+
+        const confirmed = confirm("Увага! Всі поточні дані будуть видалені і замінені даними з файлу. Продовжити?");
+        if (!confirmed) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                // Тут можна додати перевірку на коректність структури файлу
+                await importData(data);
+                alert('Дані успішно імпортовано! Додаток буде перезавантажено.');
+                location.reload(); // Перезавантажуємо сторінку, щоб побачити зміни
+            } catch (error) {
+                console.error('Помилка при імпорті:', error);
+                alert('Не вдалося імпортувати дані. Перевірте, чи файл не пошкоджено.');
+            }
+        };
+        reader.onerror = () => {
+            alert('Не вдалося прочитати файл.');
+        };
+        reader.readAsText(file);
     }
 
     async function renderHistory() {

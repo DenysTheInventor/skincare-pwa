@@ -270,3 +270,45 @@ body {
 .custom-checkbox span { font-size: 16px; }
 .filter-modal-footer { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-top: 1px solid #eee; flex-shrink: 0; }
 .date-filter-group { display: flex; gap: 16px; } .date-filter-group .form-group { margin-bottom: 0; flex-grow: 1; }
+/* Стилі для кастомної кнопки завантаження файлу */
+.file-upload-btn {
+    display: inline-block;
+    text-align: center;
+    padding: 14px 20px;
+    cursor: pointer;
+}
+#import-file-input {
+    display: none; /* Ховаємо стандартний інпут */
+}
+#import-file-name {
+    display: block;
+    margin-top: 10px;
+    font-style: italic;
+    color: #757575;
+}
+#import-data-btn:disabled {
+    background-color: #bdbdbd;
+    cursor: not-allowed;
+}
+.settings-section { 
+    margin-bottom: 40px; 
+}
+.btn-secondary {
+    width: 100%;
+    padding: 14px 20px;
+    background-color: #e0e0e0;
+    color: var(--text-color);
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+.btn-secondary:hover {
+    background-color: #bdbdbd;
+}
+.section-description {
+    margin: 10px 0 10px 0;
+}
