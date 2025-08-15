@@ -1,4 +1,4 @@
-const CACHE_NAME = 'skincare-app-cache-v13'; // Убедитесь, что версия новая
+const CACHE_NAME = 'skincare-app-cache-v14'; // Убедитесь, что версия новая
 const urlsToCache = [
   '/',
   '/index.html',

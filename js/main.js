@@ -72,6 +72,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             navigateToPage(targetPage);
         }));
 
+        $('#hard-refresh-btn').addEventListener('click', handleHardRefresh);
+
         $$('.settings-card').forEach(card => card.addEventListener('click', () => {
             const targetPage = $(`#${card.dataset.target}`);
             navigateToPage(targetPage, $('#settings-view'));
@@ -536,6 +538,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, () => {
              $('#weather-location').textContent = 'Доступ заборонено';
         }); 
+    }
+
+    async function handleHardRefresh() {
+        try {
+            if ('serviceWorker' in navigator) {
+                console.log('Починаємо примусове оновлення...');
+                
+                // 1. Знаходимо реєстрацію Service Worker'а
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (!registration) {
+                    console.log('Service Worker не знайдено, просто перезавантажуємо.');
+                    location.reload(true);
+                    return;
+                }
+                
+                // 2. Викликаємо оновлення. Браузер перевірить, чи є нова версія SW на сервері.
+                await registration.update();
+                console.log('Перевірку оновлень завершено.');
+
+                // 3. Роз-реєструємо його, щоб гарантувати, що наступне завантаження піде з мережі
+                await registration.unregister();
+                console.log('Service Worker видалено.');
+            }
+
+            // 4. Перезавантажуємо сторінку, ігноруючи кеш браузера
+            // true в location.reload(true) є застарілим, але деякі браузери все ще реагують на нього.
+            // Сучасний підхід - просто перезавантажити після unregister.
+            window.location.reload();
+
+        } catch (error) {
+            console.error('Помилка під час примусового оновлення:', error);
+            alert('Не вдалося виконати примусове оновлення.');
+        }
     }
 });
 
