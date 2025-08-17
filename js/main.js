@@ -360,25 +360,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     const [entries, products, surveys] = await Promise.all([
         getCalendarEntriesForMonth(state.currentYear, state.currentMonth),
         getAllProducts(),
-        getAllSurveys() // Додаємо отримання всіх оцінок шкіри
+        getAllSurveys()
     ]);
     
     // 2. Створюємо мапи для швидкого доступу
     const productsMap = new Map(products.map(p => [p.id, p]));
-    const surveysMap = new Map(surveys.map(s => [s.date, s.mood])); // Мапа: "YYYY-MM-DD" -> mood
+    const surveysMap = new Map(surveys.map(s => [s.date, s.mood]));
     
     const highlightedProductIds = new Set(products.filter(p => p.highlight).map(p => p.id));
     
-    // 3. Готуємо дані для кожного дня (включаючи оцінку шкіри)
+    // 3. Готуємо дані для кожного дня
     const daysData = new Map();
     entries.forEach(entry => {
         if (!daysData.has(entry.date)) {
-            daysData.set(entry.date, { hasEvents: true, highlightColor: null });
+            // Ініціалізуємо об'єкт для дня з порожнім масивом для кольорів
+            daysData.set(entry.date, { hasEvents: true, highlightColors: [] });
         }
+        
+        // Перевіряємо, чи є в цей день продукт для підсвічування
         if (highlightedProductIds.has(entry.productId)) {
             const product = productsMap.get(entry.productId);
-            if (product && !daysData.get(entry.date).highlightColor) {
-                daysData.get(entry.date).highlightColor = product.color;
+            if (product) {
+                // Додаємо колір в масив для цього дня
+                daysData.get(entry.date).highlightColors.push(product.color);
             }
         }
     });
@@ -394,7 +398,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dateStr = `${state.currentYear}-${String(state.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayData = daysData.get(dateStr);
         
-        // Отримуємо оцінку шкіри за цей день
         const mood = surveysMap.get(dateStr);
         const moodIcon = mood ? `<span class="skin-mood-icon">${emojiMap[mood]}</span>` : '';
 
@@ -404,15 +407,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         let classes = 'calendar-day';
         if (isToday) classes += ' today';
         if (dateStr === state.selectedDate) classes += ' selected';
-        if (mood) classes += ' day-with-mood'; // Додаємо клас, щоб приховати крапку
+        if (mood) classes += ' day-with-mood';
 
+        // --- НОВА ЛОГІКА для генерації стилю фону ---
         let style = '';
-        if (dayData?.highlightColor) {
+        if (dayData?.highlightColors && dayData.highlightColors.length > 0) {
+            // Видаляємо дублікати кольорів, якщо вони є
+            const uniqueColors = [...new Set(dayData.highlightColors)];
             const textColor = (dateStr === state.selectedDate) ? '#FFFFFF' : '#000000';
-            style = `style="background-color: ${dayData.highlightColor}; color: ${textColor}; font-weight: bold;"`;
+            
+            if (uniqueColors.length === 1) {
+                // Якщо тільки один колір, робимо суцільний фон
+                style = `style="background-color: ${uniqueColors[0]}; color: ${textColor}; font-weight: bold;"`;
+            } else {
+                // Якщо два або більше кольорів, робимо градієнт з перших двох
+                // Градієнт буде вертикальним, розділяючи клітинку 50/50
+                style = `style="background: linear-gradient(to bottom, ${uniqueColors[0]} 50%, ${uniqueColors[1]} 50%); color: ${textColor}; font-weight: bold;"`;
+            }
         }
-
-        const eventDot = dayData?.hasEvents && !dayData?.highlightColor ? '<div class="event-dot"></div>' : '';
+        
+        const hasHighlight = dayData?.highlightColors && dayData.highlightColors.length > 0;
+        const eventDot = dayData?.hasEvents && !hasHighlight ? '<div class="event-dot"></div>' : '';
 
         grid.innerHTML += `<div class="${classes}" data-date="${dateStr}" ${style}>${moodIcon}${day}${eventDot}</div>`;
     }
