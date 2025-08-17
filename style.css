@@ -335,11 +335,11 @@ body {
 }
 
 #care-card .card-main-content .card-icon {
-    font-size: 16px; /* Робимо текст "Оцінка:" меншим */
+    font-size: 18px; /* Робимо текст "Оцінка:" меншим */
     font-weight: bold;
     color: #757575;
 }
 
 #care-card .card-main-content #skin-assessment-emoji {
-    font-size: 16px; /* Робимо смайлик великим */
+    font-size: 18px; /* Робимо смайлик великим */
 }

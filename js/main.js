@@ -288,6 +288,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ticks: {
                         stepSize: 1,
                         padding: 10,
+                        autoSkip: false,
                         callback: function(value) {
                             const emojiMap = { 5:'😀', 4:'🙂', 3:'😐', 2:'😕', 1:'😣' };
                             return emojiMap[value] || '';
