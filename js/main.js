@@ -212,15 +212,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         const todayStr = now.toISOString().split('T')[0];
         const entries = await getCalendarEntriesForMonth(now.getFullYear(), now.getMonth());
         if (entries.some(e => e.date === todayStr)) {
-            $('#care-status-icon').textContent = '✅';
             $('#care-status-text').textContent = 'Внесено';
+            $('#care-status-icon').textContent = '✅';
         } else {
             $('#care-status-icon').textContent = '⚪️';
             $('#care-status-text').textContent = 'Не внесено';
         }
         const surveyResult = await getSkinSurveyByDate(todayStr);
-        if (surveyResult) { showSurveyResult(surveyResult.mood); } 
-        else { $('#skin-survey-card').classList.remove('hidden'); $('#skin-survey-result-card').classList.add('hidden'); }
+        if (surveyResult) {
+            // Якщо результат є, ховаємо опитування і показуємо результат в картці догляду
+            $('#skin-survey-card').classList.add('hidden');
+            showSurveyResult(surveyResult.mood); 
+        } else {
+            // Якщо результату немає, показуємо опитування і ховаємо результат
+            $('#skin-survey-card').classList.remove('hidden');
+            $('#skin-assessment-content').classList.add('hidden');
+        }
     }
 
     async function renderAnalyticsChart() {
@@ -567,9 +574,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function showSurveyResult(mood) { 
         const emojiMap = { '5':'😀', '4':'🙂', '3':'😐', '2':'😕', '1':'😣' }; 
-        $('#skin-survey-card').classList.add('hidden'); 
-        $('#survey-result-emoji').textContent = emojiMap[mood]; 
-        $('#skin-survey-result-card').classList.remove('hidden'); 
+        // Ховаємо картку-опитування
+        $('#skin-survey-card').classList.add('hidden');
+        
+        // Заповнюємо і показуємо рядок з результатом в картці догляду
+        $('#skin-assessment-emoji').textContent = emojiMap[mood];
+        $('#skin-assessment-content').classList.remove('hidden');
     }
     
     async function handleProfileFormSubmit(e) { 

@@ -55,18 +55,19 @@
                     <div id="care-card" class="info-card">
                         <span class="card-title">Сьогоднішній догляд</span>
                         <div class="card-main-content">
-                            <span id="care-status-icon" class="card-icon">⚪️</span>
                             <span id="care-status-text" class="card-value">Не внесено</span>
+                            <span id="care-status-icon" class="card-icon">⚪️</span>
+                        </div>
+                        <!-- Другий рядок: Оцінка шкіри (за замовчуванням прихований) -->
+                        <div id="skin-assessment-content" class="card-main-content hidden">
+                            <span class="card-icon">Оцінка:</span>
+                            <span id="skin-assessment-emoji" class="card-value"></span>
                         </div>
                     </div>
                 </div>
                 <div id="skin-survey-card" class="survey-card">
                     <div class="survey-card-image"></div>
                     <div class="survey-card-content"><h2>Як твоя шкіра сьогодні?</h2><div class="mood-buttons"><button class="mood-btn" data-mood="5">😀<br><span>Чудово</span></button><button class="mood-btn" data-mood="4">🙂<br><span>Добре</span></button><button class="mood-btn" data-mood="3">😐<br><span>Нормально</span></button><button class="mood-btn" data-mood="2">😕<br><span>Не дуже</span></button><button class="mood-btn" data-mood="1">😣<br><span>Погано</span></button></div></div>
-                </div>
-                <div id="skin-survey-result-card" class="survey-result-card hidden">
-                    <h3>Твоя оцінка на сьогодні:</h3>
-                    <p id="survey-result-emoji"></p>
                 </div>
                 <div id="analytics-section" class="analytics-section">
                     <h2>Аналітика стану шкіри (ост. 7 днів)</h2>
