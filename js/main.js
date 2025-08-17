@@ -350,22 +350,70 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function renderCalendar() {
         if (!$('#calendar-grid')) return;
-        const grid = $('#calendar-grid');
-        grid.innerHTML = '';
-        const monthNames = ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
-        $('#calendar-header').textContent = `${monthNames[state.currentMonth]} ${state.currentYear}`;
-        const entries = await getCalendarEntriesForMonth(state.currentYear, state.currentMonth);
-        const datesWithEntries = new Set(entries.map(e => e.date));
-        const firstDay = new Date(state.currentYear, state.currentMonth, 1).getDay();
-        const daysInMonth = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
-        grid.innerHTML += '<div></div>'.repeat((firstDay === 0) ? 6 : firstDay - 1);
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${state.currentYear}-${String(state.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const today = new Date();
-            const isToday = day === today.getDate() && state.currentMonth === today.getMonth() && state.currentYear === today.getFullYear();
-            grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''} ${dateStr === state.selectedDate ? 'selected' : ''}" data-date="${dateStr}">${day}${datesWithEntries.has(dateStr) ? '<div class="event-dot"></div>' : ''}</div>`;
+
+    const grid = $('#calendar-grid');
+    grid.innerHTML = '';
+    const monthNames = ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
+    $('#calendar-header').textContent = `${monthNames[state.currentMonth]} ${state.currentYear}`;
+    
+    // 1. Отримуємо всі необхідні дані паралельно
+    const [entries, products] = await Promise.all([
+        getCalendarEntriesForMonth(state.currentYear, state.currentMonth),
+        getAllProducts()
+    ]);
+    
+    // 2. Створюємо мапу для швидкого пошуку продуктів
+    const productsMap = new Map(products.map(p => [p.id, p]));
+    
+    // 3. Знаходимо продукти, які потрібно підсвічувати
+    const highlightedProductIds = new Set(products.filter(p => p.highlight).map(p => p.id));
+    
+    // 4. Готуємо дані для кожного дня
+    const daysData = new Map();
+    entries.forEach(entry => {
+        if (!daysData.has(entry.date)) {
+            daysData.set(entry.date, { hasEvents: true, highlightColor: null });
         }
-        await renderDayDetails();
+        // Перевіряємо, чи є в цей день продукт для підсвічування
+        if (highlightedProductIds.has(entry.productId)) {
+            const product = productsMap.get(entry.productId);
+            // Зберігаємо колір першого знайденого продукту для підсвічування
+            if (product && !daysData.get(entry.date).highlightColor) {
+                daysData.get(entry.date).highlightColor = product.color;
+            }
+        }
+    });
+
+    // 5. Рендеримо сітку календаря
+    const firstDay = new Date(state.currentYear, state.currentMonth, 1).getDay();
+    const daysInMonth = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
+    grid.innerHTML += '<div></div>'.repeat((firstDay === 0) ? 6 : firstDay - 1);
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${state.currentYear}-${String(state.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayData = daysData.get(dateStr);
+        
+        const today = new Date();
+        const isToday = day === today.getDate() && state.currentMonth === today.getMonth() && state.currentYear === today.getFullYear();
+        
+        let classes = 'calendar-day';
+        if (isToday) classes += ' today';
+        if (dateStr === state.selectedDate) classes += ' selected';
+
+        // Визначаємо стиль для підсвічування
+        let style = '';
+        if (dayData?.highlightColor) {
+            // Якщо день вибраний, робимо текст світлим, інакше темним
+            const textColor = (dateStr === state.selectedDate) ? '#FFFFFF' : '#000000';
+            style = `style="background-color: ${dayData.highlightColor}; color: ${textColor}; font-weight: bold;"`;
+        }
+
+        const eventDot = dayData?.hasEvents && !dayData?.highlightColor ? '<div class="event-dot"></div>' : '';
+
+        grid.innerHTML += `<div class="${classes}" data-date="${dateStr}" ${style}>${day}${eventDot}</div>`;
+    }
+
+    await renderDayDetails();
     }
 
     async function renderDayDetails() {
@@ -475,7 +523,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault(); 
         let imageBase64 = $('#product-image').files[0] ? await new Promise(r=>{const reader=new FileReader();reader.onload=e=>r(e.target.result);reader.readAsDataURL($('#product-image').files[0])}) : null; 
         const id = Number($('#product-id').value); 
-        const data={name:$('#product-name').value,description:$('#product-description').value,notes:$('#product-notes').value,color:$('#product-color').value}; 
+        const data = {
+            name: $('#product-name').value,
+            description: $('#product-description').value,
+            notes: $('#product-notes').value,
+            color: $('#product-color').value,
+            highlight: $('#product-highlight').checked // <-- ДОДАЄМО НОВЕ ПОЛЕ
+        };
         if(id){const existing=await getProductById(id);data.id=id;data.image=imageBase64||existing.image;await updateProduct(data)}
         else{data.image=imageBase64;await addProduct(data)} 
         $('#product-form').reset(); 
@@ -485,8 +539,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function openProductModal(p=null) { 
         $('#product-form').reset(); 
-        if(p){$('#product-modal-title').textContent="Редагувати продукт";$('#product-id').value=p.id;$('#product-name').value=p.name;$('#product-description').value=p.description;$('#product-notes').value=p.notes;$('#product-color').value=p.color}
-        else{$('#product-modal-title').textContent="Новий продукт";$('#product-id').value=''} 
+        if(p){$('#product-modal-title').textContent="Редагувати продукт";$('#product-id').value=p.id;$('#product-name').value=p.name;$('#product-description').value=p.description;$('#product-notes').value=p.notes;$('#product-color').value=p.color; $('#product-highlight').checked = p.highlight || false}
+        else{$('#product-modal-title').textContent="Новий продукт";$('#product-id').value='';$('#product-highlight').checked = false;} 
     }
     
     async function handleOpenProcedureModal() { 
