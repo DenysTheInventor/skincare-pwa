@@ -350,3 +350,17 @@ body {
     align-items: center; /* Вирівнюємо по центру по вертикалі */
     margin-bottom: 15px; /* Такий же відступ, як у .form-group */
 }
+
+/* --- Стилі для іконки стану шкіри в календарі --- */
+.skin-mood-icon {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 10px;
+    line-height: 1;
+}
+
+/* Прибираємо стандартну крапку, якщо є іконка настрою, щоб уникнути хаосу */
+.day-with-mood .event-dot {
+    display: none;
+}

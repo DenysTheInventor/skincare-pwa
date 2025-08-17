@@ -357,60 +357,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     $('#calendar-header').textContent = `${monthNames[state.currentMonth]} ${state.currentYear}`;
     
     // 1. Отримуємо всі необхідні дані паралельно
-    const [entries, products] = await Promise.all([
+    const [entries, products, surveys] = await Promise.all([
         getCalendarEntriesForMonth(state.currentYear, state.currentMonth),
-        getAllProducts()
+        getAllProducts(),
+        getAllSurveys() // Додаємо отримання всіх оцінок шкіри
     ]);
     
-    // 2. Створюємо мапу для швидкого пошуку продуктів
+    // 2. Створюємо мапи для швидкого доступу
     const productsMap = new Map(products.map(p => [p.id, p]));
+    const surveysMap = new Map(surveys.map(s => [s.date, s.mood])); // Мапа: "YYYY-MM-DD" -> mood
     
-    // 3. Знаходимо продукти, які потрібно підсвічувати
     const highlightedProductIds = new Set(products.filter(p => p.highlight).map(p => p.id));
     
-    // 4. Готуємо дані для кожного дня
+    // 3. Готуємо дані для кожного дня (включаючи оцінку шкіри)
     const daysData = new Map();
     entries.forEach(entry => {
         if (!daysData.has(entry.date)) {
             daysData.set(entry.date, { hasEvents: true, highlightColor: null });
         }
-        // Перевіряємо, чи є в цей день продукт для підсвічування
         if (highlightedProductIds.has(entry.productId)) {
             const product = productsMap.get(entry.productId);
-            // Зберігаємо колір першого знайденого продукту для підсвічування
             if (product && !daysData.get(entry.date).highlightColor) {
                 daysData.get(entry.date).highlightColor = product.color;
             }
         }
     });
 
-    // 5. Рендеримо сітку календаря
+    // 4. Рендеримо сітку календаря
     const firstDay = new Date(state.currentYear, state.currentMonth, 1).getDay();
     const daysInMonth = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
     grid.innerHTML += '<div></div>'.repeat((firstDay === 0) ? 6 : firstDay - 1);
+
+    const emojiMap = { 5:'😀', 4:'🙂', 3:'😐', 2:'😕', 1:'😣' };
 
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${state.currentYear}-${String(state.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayData = daysData.get(dateStr);
         
+        // Отримуємо оцінку шкіри за цей день
+        const mood = surveysMap.get(dateStr);
+        const moodIcon = mood ? `<span class="skin-mood-icon">${emojiMap[mood]}</span>` : '';
+
         const today = new Date();
         const isToday = day === today.getDate() && state.currentMonth === today.getMonth() && state.currentYear === today.getFullYear();
         
         let classes = 'calendar-day';
         if (isToday) classes += ' today';
         if (dateStr === state.selectedDate) classes += ' selected';
+        if (mood) classes += ' day-with-mood'; // Додаємо клас, щоб приховати крапку
 
-        // Визначаємо стиль для підсвічування
         let style = '';
         if (dayData?.highlightColor) {
-            // Якщо день вибраний, робимо текст світлим, інакше темним
             const textColor = (dateStr === state.selectedDate) ? '#FFFFFF' : '#000000';
             style = `style="background-color: ${dayData.highlightColor}; color: ${textColor}; font-weight: bold;"`;
         }
 
         const eventDot = dayData?.hasEvents && !dayData?.highlightColor ? '<div class="event-dot"></div>' : '';
 
-        grid.innerHTML += `<div class="${classes}" data-date="${dateStr}" ${style}>${day}${eventDot}</div>`;
+        grid.innerHTML += `<div class="${classes}" data-date="${dateStr}" ${style}>${moodIcon}${day}${eventDot}</div>`;
     }
 
     await renderDayDetails();
