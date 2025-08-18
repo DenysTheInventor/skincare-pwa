@@ -355,7 +355,7 @@ body {
 .skin-mood-icon {
     position: absolute;
     top: 2px;
-    right: 4px;
+    right: 1px;
     font-size: 10px;
     line-height: 1;
 }
@@ -363,4 +363,36 @@ body {
 /* Прибираємо стандартну крапку, якщо є іконка настрою, щоб уникнути хаосу */
 .day-with-mood .event-dot {
     display: none;
+}
+
+/* Іконка миття голови в клітинці календаря */
+.hair-wash-icon {
+    position: absolute;
+    bottom: 2px;
+    right: 1px; /* Розміщуємо в протилежному кутку від смайлика */
+    font-size: 10px;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+/* Картка-сповіщення про миття голови в списку процедур за день */
+.hair-wash-entry {
+    background-color: #e3f2fd; /* Світло-блакитний фон */
+    border: 1px solid var(--primary-accent);
+    color: #1e88e5;
+    font-weight: 500;
+}
+
+.hair-wash-entry .procedure-info, .hair-wash-entry .card-actions {
+    opacity: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.hair-wash-entry .hair-wash-label {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }

@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function renderCalendar() {
-        if (!$('#calendar-grid')) return;
+    if (!$('#calendar-grid')) return;
 
     const grid = $('#calendar-grid');
     grid.innerHTML = '';
@@ -373,17 +373,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const daysData = new Map();
     entries.forEach(entry => {
         if (!daysData.has(entry.date)) {
-            // Ініціалізуємо об'єкт для дня з порожнім масивом для кольорів
-            daysData.set(entry.date, { hasEvents: true, highlightColors: [] });
+            daysData.set(entry.date, { hasEvents: true, highlightColors: [], hasHairWash: false });
         }
-        
-        // Перевіряємо, чи є в цей день продукт для підсвічування
         if (highlightedProductIds.has(entry.productId)) {
             const product = productsMap.get(entry.productId);
             if (product) {
-                // Додаємо колір в масив для цього дня
                 daysData.get(entry.date).highlightColors.push(product.color);
             }
+        }
+        if (entry.hairWash) {
+            daysData.get(entry.date).hasHairWash = true;
         }
     });
 
@@ -400,6 +399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         const mood = surveysMap.get(dateStr);
         const moodIcon = mood ? `<span class="skin-mood-icon">${emojiMap[mood]}</span>` : '';
+        const hairWashIcon = dayData?.hasHairWash ? `<span class="hair-wash-icon">🚿</span>` : '';
 
         const today = new Date();
         const isToday = day === today.getDate() && state.currentMonth === today.getMonth() && state.currentYear === today.getFullYear();
@@ -409,19 +409,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (dateStr === state.selectedDate) classes += ' selected';
         if (mood) classes += ' day-with-mood';
 
-        // --- НОВА ЛОГІКА для генерації стилю фону ---
         let style = '';
         if (dayData?.highlightColors && dayData.highlightColors.length > 0) {
-            // Видаляємо дублікати кольорів, якщо вони є
             const uniqueColors = [...new Set(dayData.highlightColors)];
             const textColor = (dateStr === state.selectedDate) ? '#FFFFFF' : '#000000';
             
             if (uniqueColors.length === 1) {
-                // Якщо тільки один колір, робимо суцільний фон
                 style = `style="background-color: ${uniqueColors[0]}; color: ${textColor}; font-weight: bold;"`;
             } else {
-                // Якщо два або більше кольорів, робимо градієнт з перших двох
-                // Градієнт буде вертикальним, розділяючи клітинку 50/50
                 style = `style="background: linear-gradient(to bottom, ${uniqueColors[0]} 50%, ${uniqueColors[1]} 50%); color: ${textColor}; font-weight: bold;"`;
             }
         }
@@ -429,32 +424,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         const hasHighlight = dayData?.highlightColors && dayData.highlightColors.length > 0;
         const eventDot = dayData?.hasEvents && !hasHighlight ? '<div class="event-dot"></div>' : '';
 
-        grid.innerHTML += `<div class="${classes}" data-date="${dateStr}" ${style}>${moodIcon}${day}${eventDot}</div>`;
+        grid.innerHTML += `<div class="${classes}" data-date="${dateStr}" ${style}>${moodIcon}${day}${eventDot}${hairWashIcon}</div>`;
     }
 
     await renderDayDetails();
-    }
+}
 
     async function renderDayDetails() {
-        const content = $('#day-details-content');
-        if (!$('#day-details-header')) return;
-        if (!state.selectedDate) { $('#day-details-header').textContent = 'Виберіть день'; content.innerHTML = ''; $('#day-actions-container').style.display = 'none'; return; }
-        const dateObj = new Date(state.selectedDate);
-        $('#day-details-header').textContent = `Процедури за ${dateObj.toLocaleDateString('uk-UA', {day:'numeric',month:'long'})}`;
-        const dayEntries = (await getCalendarEntriesForMonth(dateObj.getFullYear(),dateObj.getMonth())).filter(e => e.date === state.selectedDate);
-        content.innerHTML = '';
-        if (dayEntries.length === 0) { content.innerHTML = '<p>На цей день процедур не заплановано.</p>'; return; }
-        const [products, categories] = await Promise.all([getAllProducts(), getAllCategories()]);
-        const grouped = dayEntries.reduce((acc, entry) => { (acc[entry.categoryId] = acc[entry.categoryId] || []).push(entry); return acc; }, {});
-        Object.keys(grouped).sort((a,b)=>a-b).forEach(catId => {
-            const category = categories.find(c => c.id === Number(catId));
-            content.innerHTML += `<h3 class="procedure-group-header">${category?.name || 'Без категорії'}</h3>`;
-            grouped[catId].sort((a, b) => a.time.localeCompare(b.time)).forEach(entry => {
-                const product = products.find(p => p.id === entry.productId);
-                content.innerHTML += `<div class="procedure-entry"><div class="procedure-info"><span class="time">${entry.time}</span><span class="product-name">${product?.name || '?'}</span><span class="category-name" style="opacity:0.7">${entry.notes||''}</span></div><div class="card-actions"><button class="delete-btn delete-entry-btn" data-id="${entry.id}">${ICONS.trash}</button></div></div>`;
-            });
-        });
+    const content = $('#day-details-content');
+    if (!$('#day-details-header')) return;
+    if (!state.selectedDate) { $('#day-details-header').textContent = 'Виберіть день'; content.innerHTML = ''; $('#day-actions-container').style.display = 'none'; return; }
+    
+    const dateObj = new Date(state.selectedDate);
+    $('#day-details-header').textContent = `Процедури за ${dateObj.toLocaleDateString('uk-UA', {day:'numeric',month:'long'})}`;
+    
+    const dayEntries = (await getCalendarEntriesForMonth(dateObj.getFullYear(),dateObj.getMonth())).filter(e => e.date === state.selectedDate);
+    content.innerHTML = '';
+    
+    if (dayEntries.length === 0) { 
+        content.innerHTML = '<p>На цей день процедур не заплановано.</p>'; 
+        return; 
     }
+
+    const [products, categories] = await Promise.all([getAllProducts(), getAllCategories()]);
+    const grouped = dayEntries.reduce((acc, entry) => { 
+        (acc[entry.categoryId] = acc[entry.categoryId] || []).push(entry); 
+        return acc; 
+    }, {});
+
+    Object.keys(grouped).sort((a,b)=>a-b).forEach(catId => {
+        const category = categories.find(c => c.id === Number(catId));
+        let categoryName = category ? category.name : 'Без категорії';
+        
+        const entriesOfGroup = grouped[catId];
+        
+        const hasHairWashInGroup = entriesOfGroup.some(entry => entry.hairWash);
+        if (hasHairWashInGroup) {
+            categoryName += ' 🚿';
+        }
+
+        content.innerHTML += `<h3 class="procedure-group-header">${categoryName}</h3>`;
+        
+        entriesOfGroup.sort((a, b) => a.time.localeCompare(b.time)).forEach(entry => {
+            const product = products.find(p => p.id === entry.productId);
+            content.innerHTML += `<div class="procedure-entry"><div class="procedure-info"><span class="time">${entry.time}</span><span class="product-name">${product?.name || '?'}</span><span class="category-name" style="opacity:0.7">${entry.notes||''}</span></div><div class="card-actions"><button class="delete-btn delete-entry-btn" data-id="${entry.id}">${ICONS.trash}</button></div></div>`;
+            
+            if (entry.hairWash) {
+                content.innerHTML += `<div class="procedure-entry hair-wash-entry">
+                    <div class="hair-wash-label">
+                        <span>🚿 Миття голови</span>
+                        <span>${entry.time}</span>
+                    </div>
+                </div>`;
+            }
+        });
+    });
+}
 
     async function handleExportData() {
         try {
@@ -575,8 +600,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     async function handleProcedureFormSubmit(e) { 
         e.preventDefault(); 
-        await addCalendarEntry({date:$('#procedure-date').value,categoryId:Number($('#procedure-category').value),productId:Number($('#procedure-product').value),time:$('#procedure-time').value,notes:$('#procedure-notes').value.trim()}); 
+        const markedHairWash = $('#hair-wash-checkbox').checked;
+        await addCalendarEntry({date:$('#procedure-date').value,categoryId:Number($('#procedure-category').value),productId:Number($('#procedure-product').value),time:$('#procedure-time').value,notes:$('#procedure-notes').value.trim(), hairWash:  markedHairWash}); 
         $('#procedure-form').reset(); 
+        $('#hair-wash-checkbox').checked = false;
         hideModal($('#procedure-modal'));
         await renderAll(); 
     }
